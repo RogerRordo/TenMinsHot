@@ -1,0 +1,11 @@
+.git/
+.idea/
+.vscode/
+*.DS_Store
+*.pyc
+*.sw[a-p]
+*~
+
+data/
+config.json
+videoTEMP_*.mp3
