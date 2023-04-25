@@ -125,7 +125,7 @@ async def read_cover_and_ending(cover_audio_file: str, ending_audio_file: str, d
     cover_audio_file_path.parent.mkdir(parents=True, exist_ok=True)
     ending_audio_file_path.parent.mkdir(parents=True, exist_ok=True)
     await read_text_with_edge_tts(
-        txt=_COVER_TXT.format(year=int(date[:4]), month=int(date[5:6]), day=int(date[7:8])),
+        txt=_COVER_TXT.format(year=int(date[:4]), month=int(date[4:6]), day=int(date[6:8])),
         audio_path=cover_audio_file_path,
         voice=voice,
         rate=rate,
