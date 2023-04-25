@@ -25,7 +25,9 @@ def read_news_json(news_json_path: Path) -> List[News]:
                 url=news['url'],
                 publish_timestamp=news['publish_timestamp'],
                 request_timestamp=news['request_timestamp'],
+                source_name=news.get('source_name', ''),
                 comment_count=news.get('comment_count', 0),
+                image_path=news.get('image_path', ''),
                 brief_content=news.get('brief_content', ''),
                 audio_path=news.get('audio_path', '')))
     return news_list

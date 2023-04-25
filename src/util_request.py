@@ -35,7 +35,7 @@ def request_get(
         params: Optional[dict] = None,
         extra_headers: Optional[dict] = None,
         timeout: float = 5,
-        retry_times: int = 3,
+        retry_times: int = 5,
         delay: float = 1,
         backoff: float = 2,
 ) -> requests.Response:
@@ -58,7 +58,7 @@ def request_post(
         data: Optional[dict] = None,
         extra_headers: Optional[dict] = None,
         timeout: float = 5,
-        retry_times: int = 3,
+        retry_times: int = 5,
         delay: float = 1,
         backoff: float = 2,
 ) -> requests.Response:
