@@ -225,6 +225,7 @@ def generate_news_video(news_list: List[News],
                         ending_audio_file_path: Path,
                         font_file_path: Path,
                         video_file_path: Path,
+                        cover_file_path: Path,
                         temp_dir_path: Optional[Path] = None):
     if temp_dir_path is None:
         raise ValueError('Temp dir path cannot be none')
@@ -232,12 +233,11 @@ def generate_news_video(news_list: List[News],
     curr_timestamp = 0
 
     # Generate slides
-    cover_slide_file_path = temp_dir_path / _COVER_SLIDE_FILENAME
     _generate_cover_slide(
         news_list=news_list,
         date=date,
         font_file_path=font_file_path,
-        cover_slide_file_path=cover_slide_file_path)
+        cover_slide_file_path=cover_file_path)
     for index, news in enumerate(news_list):
         _generate_news_slide(
             news=news,
@@ -248,7 +248,7 @@ def generate_news_video(news_list: List[News],
                 str(index).zfill(2)))
 
     # Cover
-    cover_slide_clip = editor.ImageClip(str(cover_slide_file_path))
+    cover_slide_clip = editor.ImageClip(str(cover_file_path))
     cover_audio_clip = editor.AudioFileClip(str(cover_audio_file_path))
     cover_slide_clip = cover_slide_clip.set_position((0, 0))
     cover_slide_clip = cover_slide_clip.set_start((curr_timestamp))
@@ -282,7 +282,7 @@ def generate_news_video(news_list: List[News],
         news_audio_clips.append(news_audio_clip)
 
     # Ending
-    ending_slide_clip = editor.ImageClip(str(cover_slide_file_path))
+    ending_slide_clip = editor.ImageClip(str(cover_file_path))
     ending_audio_clip = editor.AudioFileClip(str(ending_audio_file_path))
     ending_slide_clip = ending_slide_clip.set_position((0, 0))
     ending_slide_clip = ending_slide_clip.set_start((curr_timestamp))
@@ -302,3 +302,15 @@ def generate_news_video(news_list: List[News],
 
     final_video_clip.write_videofile(str(video_file_path), fps=_VIDEO_FPS, threads=_FFMPEG_THREADS)
     logging.info('Generated news video to {}'.format(str(video_file_path)))
+
+
+def generate_news_video_description(news_list: List[News], date: str, description_file_path: Path):
+    descriptions = [
+        '《十分热》每日新闻 - {}期'.format(date), '', '爬虫 + ChatGPT + TTS 全自动生成的新闻视频，十分钟带你看完24h时下热点。', ''
+    ] + [
+        '{}. 《{}》'.format(str(index).zfill(2), news.title) for index, news in enumerate(news_list)
+    ]
+    description = '\n'.join(descriptions)
+    description_file_path.write_text(description)
+    logging.info('Generated description text for the video to {}'.format(
+        str(description_file_path)))

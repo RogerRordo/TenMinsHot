@@ -14,7 +14,7 @@ from class_news import News
 
 # NOTE: chatgpt3.5 has a limit of 4096 tokens, and one Chinese character is about two tokens
 _OPENAI_MODEL = 'gpt-3.5-turbo'
-_OPENAI_MAX_TOKENS = 320
+_OPENAI_MAX_TOKENS = 300
 _OPENAI_TEMPERATUR = 1.0
 _OPENAI_PRESENCE_PENALTY = 1.0
 _OPENAI_FREQUENCY_PENALTY = 0.5

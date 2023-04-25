@@ -37,6 +37,17 @@ python3 src/news_generator.py record-news \
     --cover_audio_file ${SUB_DATA_DIR}/audios/cover.mp3 \
     --ending_audio_file ${SUB_DATA_DIR}/audios/ending.mp3 \
     --date ${DATE} \
-    --video_file ${SUB_DATA_DIR}/video.mp4
+    --video_file ${SUB_DATA_DIR}/video.mp4 \
+    --cover_file ${SUB_DATA_DIR}/cover.png \
+    --description_file ${SUB_DATA_DIR}/description.txt
+
+if [[ $# == 1 && "$1" == "--upload" ]]; then
+    echo "================================================== Upload Video =================================================="
+    python3 src/video_uploader.py upload-to-bilibili \
+        --date ${DATE} \
+        --video_file ${SUB_DATA_DIR}/video.mp4 \
+        --cover_file ${SUB_DATA_DIR}/cover.png \
+        --description_file ${SUB_DATA_DIR}/description.txt
+fi
 
 echo "================================================== Finish =================================================="

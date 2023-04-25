@@ -122,6 +122,7 @@ def _fetch_news_image(news_list_without_image: List[News], image_dir_path: Path)
             logging.warning(
                 'There is no cover image for the news {}, skip download its image.'.format(
                     news.title))
+            continue
         raw_news_image_response = request_get(url=news.image_path)
         image_extension = raw_news_image_response.headers.get('content-type',
                                                               '').split('/')[-1] or 'webp'
