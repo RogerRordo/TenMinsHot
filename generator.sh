@@ -12,7 +12,8 @@ echo "================================================== Start =================
 
 echo "================================================== Fetch News =================================================="
 python3 src/news_generator.py fetch-news \
-    --news_json ${SUB_DATA_DIR}/news.json
+    --news_json ${SUB_DATA_DIR}/news.json \
+    --image_dir ${SUB_DATA_DIR}/images
 
 echo "================================================== Sumarize News =================================================="
 python3 src/news_generator.py summarize-news \
@@ -23,7 +24,7 @@ python3 src/news_generator.py read-news \
     --news_json ${SUB_DATA_DIR}/news.json \
     --audio_dir ${SUB_DATA_DIR}/audios
 
-echo "================================================== Read Cover \& Ending =================================================="
+echo "================================================== Read Cover & Ending =================================================="
 python3 src/news_generator.py read-cover-and-ending \
     --cover_audio_file ${SUB_DATA_DIR}/audios/cover.mp3 \
     --ending_audio_file ${SUB_DATA_DIR}/audios/ending.mp3 \

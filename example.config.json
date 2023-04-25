@@ -1,5 +1,5 @@
 {
-    "openai_api_key": "",
-    "openai_proxy": "http://127.0.0.1:1080"
-  }
-  
+  "openai_api_key": "",
+  "openai_proxy": "http://127.0.0.1:1080",
+  "video_font_path": "assets/fonts/NotoSansSC/NotoSansSC-Medium.otf"
+}

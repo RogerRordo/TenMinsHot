@@ -3,6 +3,7 @@
 import dataclasses
 from datetime import datetime, timedelta
 import logging
+from pathlib import Path
 from typing import List, Set
 
 from bs4 import BeautifulSoup
@@ -48,7 +49,10 @@ def _get_news_list_without_content(news_num: int) -> List[News]:
             news_title = raw_news.get('title')
             news_url = raw_news.get('url')
             news_publish_time_str = raw_news.get('time')
+            news_source_name = raw_news.get('source') or ''
             news_comment_count = raw_news.get('commentNum') or raw_news.get('comments') or 0
+            news_image_path = raw_news.get('fimgUrl', {}).get('ExplicitImageUrl') or (raw_news.get(
+                'thumbnails_big', []) or [''])[0]
             if any([
                     not news_id,
                     news_id in news_id_set,
@@ -76,7 +80,9 @@ def _get_news_list_without_content(news_num: int) -> List[News]:
                     url=news_url,
                     publish_timestamp=news_publish_time.timestamp(),
                     request_timestamp=request_time.timestamp(),
-                    comment_count=news_comment_count))
+                    source_name=news_source_name,
+                    comment_count=news_comment_count,
+                    image_path=news_image_path))
             has_news_added = True
 
         if not has_news_added:
@@ -109,7 +115,28 @@ def _fetch_news_content(news_list_without_content: List[News]) -> List[News]:
     return news_list
 
 
-def get_tencent_hot_ranking_list(news_num: int) -> List[News]:
+def _fetch_news_image(news_list_without_image: List[News], image_dir_path: Path) -> List[News]:
+    news_list: List[News] = []
+    for index, news in enumerate(news_list_without_image):
+        if not news.image_path:
+            logging.warning(
+                'There is no cover image for the news {}, skip download its image.'.format(
+                    news.title))
+        raw_news_image_response = request_get(url=news.image_path)
+        image_extension = raw_news_image_response.headers.get('content-type',
+                                                              '').split('/')[-1] or 'webp'
+        image_path = image_dir_path / f'{str(index).zfill(2)}.{image_extension}'
+        image_path.write_bytes(raw_news_image_response.content)
+        news_with_image = dataclasses.replace(news)
+        news_with_image.image_path = str(image_path)
+        news_list.append(news_with_image)
+        logging.info('Downloaded the image of the news: {} [{}/{}] to {}'.format(
+            news.title, index + 1, len(news_list_without_image), str(image_path)))
+    return news_list
+
+
+def get_tencent_hot_ranking_list(news_num: int, image_dir_path: Path) -> List[News]:
     news_list_without_content = _get_news_list_without_content(news_num=news_num)
-    news_list = _fetch_news_content(news_list_without_content)
+    news_list_without_image = _fetch_news_content(news_list_without_content)
+    news_list = _fetch_news_image(news_list_without_image, image_dir_path)
     return news_list

@@ -3,6 +3,7 @@
 
 from dataclasses import asdict, dataclass
 
+
 @dataclass
 class News():
     title: str
@@ -10,7 +11,9 @@ class News():
     url: str
     publish_timestamp: float
     request_timestamp: float
+    source_name: str = ''
     comment_count: int = 0
+    image_path: str = ''
     brief_content: str = ''
     audio_path: str = ''
 

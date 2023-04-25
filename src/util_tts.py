@@ -28,10 +28,7 @@ async def _read_with_edge_tts(txt: str, audio_path: Path, voice: str, rate: str,
         rate=rate,
         volume=volume,
     )
-    with open(str(audio_path), 'wb') as f:
-        async for chunk in tts.stream():
-            if chunk['type'] == 'audio':
-                f.write(chunk['data'])
+    await tts.save(str(audio_path))
 
 
 async def read_news_with_edge_tts(news: News, audio_path: Path, voice: str, rate: str,
