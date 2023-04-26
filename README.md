@@ -1,9 +1,14 @@
 # TenMinsHot
-《十分热》是每日自动生成的十分钟左右的时事快讯视频节目。原理是爬取腾讯新闻，用ChatGpt总结，并用微软TTS朗读。
+
+《十分热》是每日自动生成的十分钟左右的时事快讯视频节目
 
 https://space.bilibili.com/695795/video
 
-## Usage
+## 原理流程图
+
+![process](./graphviz.svg)
+
+## 用法
 
 1. 安装 python 3.9 和 [pipenv](https://pythonguidecn.readthedocs.io/zh/latest/dev/virtualenvs.html)
 2. 在本目录下运行 `pipenv install` 以安装依赖

@@ -1,0 +1,22 @@
+digraph G {
+  node [shape=box];
+  
+  n0 [label="每日定时器触发" shape=oval]
+  n1 [label="爬虫爬取腾讯新闻热榜"]
+  n2 [label="筛选24h内评论最多的20条新闻"]
+  n3 [label="ChatGPT总结新闻概要"]
+  n4 [label="微软 TTS生成朗读音频"]
+  n5 [label="Pillow生成幻灯片图片"]
+  n6 [label="moviepy合成视频"]
+  n7 [label="调用B站API上传"]
+
+  n0 -> n1;
+  n1 -> n2;
+  n2 -> n3;
+  n3 -> n4;
+  n2 -> n5;
+  n3 -> n5;
+  n4 -> n6;
+  n5 -> n6;
+  n6 -> n7;
+}
