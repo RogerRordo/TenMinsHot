@@ -11,28 +11,28 @@ mkdir -p ${SUB_DATA_DIR}
 echo "================================================== Start =================================================="
 
 echo "================================================== Fetch News =================================================="
-python3 src/news_generator.py fetch-news \
+pipenv run python3 src/news_generator.py fetch-news \
     --news_json ${SUB_DATA_DIR}/news.json \
     --image_dir ${SUB_DATA_DIR}/images
 
 echo "================================================== Sumarize News =================================================="
-python3 src/news_generator.py summarize-news \
+pipenv run python3 src/news_generator.py summarize-news \
     --news_json ${SUB_DATA_DIR}/news.json
 
 echo "================================================== Read News =================================================="
-python3 src/news_generator.py read-news \
+pipenv run python3 src/news_generator.py read-news \
     --news_json ${SUB_DATA_DIR}/news.json \
     --audio_dir ${SUB_DATA_DIR}/audios
 
 echo "================================================== Read Cover & Ending =================================================="
-python3 src/news_generator.py read-cover-and-ending \
+pipenv run python3 src/news_generator.py read-cover-and-ending \
     --cover_audio_file ${SUB_DATA_DIR}/audios/cover.mp3 \
     --ending_audio_file ${SUB_DATA_DIR}/audios/ending.mp3 \
     --rate "-5%" \
     --date ${DATE}
 
 echo "================================================== Record News =================================================="
-python3 src/news_generator.py record-news \
+pipenv run python3 src/news_generator.py record-news \
     --news_json ${SUB_DATA_DIR}/news.json \
     --cover_audio_file ${SUB_DATA_DIR}/audios/cover.mp3 \
     --ending_audio_file ${SUB_DATA_DIR}/audios/ending.mp3 \
@@ -43,7 +43,7 @@ python3 src/news_generator.py record-news \
 
 if [[ $# == 1 && "$1" == "--upload" ]]; then
     echo "================================================== Upload Video =================================================="
-    python3 src/video_uploader.py upload-to-bilibili \
+    pipenv run python3 src/video_uploader.py upload-to-bilibili \
         --date ${DATE} \
         --video_file ${SUB_DATA_DIR}/video.mp4 \
         --cover_file ${SUB_DATA_DIR}/cover.png \

@@ -30,7 +30,6 @@ class UtilBilibili():
     @classmethod
     async def _upload(cls, video_file_path: Path, cover_file_path: Path, title: str,
                       description: str, metadata: dict):
-
         page = video_uploader.VideoUploaderPage(
             path=str(video_file_path), title=title, description=description)
         uploader = video_uploader.VideoUploader(
@@ -38,7 +37,7 @@ class UtilBilibili():
 
         @uploader.on('__ALL__')
         async def ev(data):  # pylint: disable=unused-variable
-            print(data)
+            logging.info(data)
 
         await uploader.start()
 
@@ -55,7 +54,7 @@ class UtilBilibili():
             'act_reserve_create': 0,
             'copyright': 1,
             'source': '',
-            'desc': '',
+            'desc': description,
             'desc_format_id': 0,
             'dynamic': '',
             'interactive': 0,
@@ -68,7 +67,7 @@ class UtilBilibili():
             },
             'tag': ','.join(tags),
             'tid': tid,
-            'title': 'title',
+            'title': title,
             'up_close_danmaku': False,
             'up_close_reply': False,
             'up_selection_reply': False,
@@ -76,5 +75,5 @@ class UtilBilibili():
         }
         try:
             sync(cls._upload(video_file_path, cover_file_path, title, description, metadata))
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logging.exception('Failed to upload {} to bilibili: {}'.format(str(video_file_path), e))

@@ -2,7 +2,6 @@
 # Authors: luozhuofeng@gmail.com (Zhuofeng Luo)
 import dataclasses
 import logging
-import re
 from time import sleep
 from typing import Optional
 
@@ -11,6 +10,7 @@ import requests
 from retry.api import retry_call
 
 from class_news import News
+from util import count_chinese_chars
 
 # NOTE: chatgpt3.5 has a limit of 4096 tokens, and one Chinese character is about two tokens
 _OPENAI_MODEL = 'gpt-3.5-turbo'
@@ -19,8 +19,8 @@ _OPENAI_TEMPERATUR = 1.0
 _OPENAI_PRESENCE_PENALTY = 1.0
 _OPENAI_FREQUENCY_PENALTY = 0.5
 _OPENAI_ASSISTANT_PROMPT = 'You are a helpful assistant.'
-_MAX_CONTENT_CHINESE_CHARS = 1600
-_SUMMARIZE_QUESTION_FMT = '请为以下新闻写一篇不含标题的中文摘要：\n\n《{title}》\n{content}'
+_MAX_INPUT_CONTENT_CHINESE_CHARS = 1600
+_SUMMARIZE_QUESTION_FMT = '请为以下新闻写一篇100字以内、不含标题的中文摘要：\n\n《{title}》\n{content}'
 
 
 def init_openai(openai_api_key: str, openai_proxy: Optional[str] = None):
@@ -29,22 +29,17 @@ def init_openai(openai_api_key: str, openai_proxy: Optional[str] = None):
         openai.proxy = openai_proxy
 
 
-def _count_chinese_chars(s: str):
-    visible_chars = re.sub(r'\s+', '', s, flags=re.UNICODE)
-    return len(visible_chars)
-
-
 def summarize_news_with_gpt(
         news: News,
         retry_times: int = 3,
         delay: float = 25,
 ) -> Optional[News]:
     content = news.content
-    if _count_chinese_chars(content) > _MAX_CONTENT_CHINESE_CHARS:
+    if count_chinese_chars(content) > _MAX_INPUT_CONTENT_CHINESE_CHARS:
         logging.warning(
-            'The content is too long with {} chinese chars, while we have a limit of {}'.format(
-                _count_chinese_chars(content), _MAX_CONTENT_CHINESE_CHARS))
-        while _count_chinese_chars(content) > _MAX_CONTENT_CHINESE_CHARS:
+            'The content to summarize is too long with {} chinese chars, while we have a limit of {}'.  # pylint: disable=line-too-long
+            format(count_chinese_chars(content), _MAX_INPUT_CONTENT_CHINESE_CHARS))
+        while count_chinese_chars(content) > _MAX_INPUT_CONTENT_CHINESE_CHARS:
             content = content[:len(content) - 1]
             punctuation_index = max(
                 content.rfind('。'),
@@ -60,10 +55,8 @@ def summarize_news_with_gpt(
             'content': _OPENAI_ASSISTANT_PROMPT,
         },
         {
-            'role':
-            'user',
-            'content':
-            _SUMMARIZE_QUESTION_FMT.format(
+            'role': 'user',
+            'content': _SUMMARIZE_QUESTION_FMT.format(
                 title=news.title,
                 content=content,
             ),
@@ -96,5 +89,5 @@ def summarize_news_with_gpt(
     news_with_summary = dataclasses.replace(news)
     news_with_summary.brief_content = response.choices[0]['message']['content']
     logging.info('Summarized content for {} in {} chinese characters.'.format(
-        news.title, _count_chinese_chars(news_with_summary.brief_content)))
+        news.title, count_chinese_chars(news_with_summary.brief_content)))
     return news_with_summary
