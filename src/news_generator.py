@@ -1,20 +1,18 @@
 # Copyright @2023. All rights reserved.
 # Authors: luozhuofeng@gmail.com (Zhuofeng Luo)
-import asyncio
 import json
-import logging
 from datetime import datetime
 from pathlib import Path
 from enum import Enum
-from typing import Any, Coroutine
 
 import click
 
+from util import setup_logging, sync
 from util_news import read_news_json, write_news_json
 from util_summarize import init_openai, summarize_news_with_gpt
 from util_tencent_news import get_tencent_hot_ranking_list
 from util_tts import read_text_with_edge_tts, read_news_with_edge_tts, validate_edge_tts_voices
-from util_video import generate_news_video
+from util_video import generate_news_video, generate_news_video_description
 
 _COVER_TXT = '十分钟带你看完时下热点。大家好，欢迎收听《十分热》每日新闻，今天是{year}年{month}月{day}日，星期{weekday}。'
 _ENDING_TXT = '以上是全部内容，感谢您的收看，再见！'
@@ -33,36 +31,13 @@ with open('config.json', 'r') as f:
     _CONFIG = json.loads(f.read())
 
 
-def _setup_logging(logging_level=logging.INFO):
-    logger = logging.getLogger()
-    handler = logging.StreamHandler()
-    handler.setFormatter(
-        logging.Formatter('%(asctime)s [%(filename)s:%(lineno)d] [%(levelname)s] %(message)s'))
-    logger.addHandler(handler)
-    logger.setLevel(logging_level)
-
-
-def _ensure_event_loop() -> None:
-    try:
-        asyncio.get_event_loop()
-    except:  # pylint: disable=bare-except
-        asyncio.set_event_loop(asyncio.new_event_loop())
-
-
-def _sync(coroutine: Coroutine) -> Any:
-    """Async to sync"""
-    _ensure_event_loop()
-    loop = asyncio.get_event_loop()
-    return loop.run_until_complete(coroutine)
-
-
 class NewsSource(Enum):
     TENCENT = 'tencent'
 
 
 @click.group()
 def main():
-    _setup_logging()
+    setup_logging()
 
 
 @main.command()
@@ -112,10 +87,10 @@ def read_news(news_json: str, audio_dir: str, voices_str: str, rate: str, volume
     audio_dir_path.mkdir(parents=True, exist_ok=True)
     news_list = []
     voices = voices_str.split(',')
-    _sync(validate_edge_tts_voices(voices))
+    sync(validate_edge_tts_voices(voices))
     for index, news in enumerate(news_list_without_audio):
         audio_path = audio_dir_path / '{}.mp3'.format(str(index).zfill(2))
-        news_with_audio = _sync(
+        news_with_audio = sync(
             read_news_with_edge_tts(
                 news=news,
                 audio_path=audio_path,
@@ -141,8 +116,8 @@ def read_cover_and_ending(cover_audio_file: str, ending_audio_file: str, date: s
     cover_audio_file_path.parent.mkdir(parents=True, exist_ok=True)
     ending_audio_file_path.parent.mkdir(parents=True, exist_ok=True)
     date_time = datetime(year=int(date[:4]), month=int(date[4:6]), day=int(date[6:8]))
-    _sync(validate_edge_tts_voices([voice]))
-    _sync(
+    sync(validate_edge_tts_voices([voice]))
+    sync(
         read_text_with_edge_tts(
             txt=_COVER_TXT.format(
                 year=date_time.year,
@@ -153,7 +128,7 @@ def read_cover_and_ending(cover_audio_file: str, ending_audio_file: str, date: s
             voice=voice,
             rate=rate,
             volume=volume))
-    _sync(
+    sync(
         read_text_with_edge_tts(
             txt=_ENDING_TXT,
             audio_path=ending_audio_file_path,
@@ -168,21 +143,30 @@ def read_cover_and_ending(cover_audio_file: str, ending_audio_file: str, date: s
 @click.option('--ending_audio_file', required=True, type=click.Path(dir_okay=False, exists=True))
 @click.option('--date', default=datetime.now().strftime('%Y%m%d'), type=str)
 @click.option('--video_file', required=True, type=click.Path(dir_okay=False))
+@click.option('--cover_file', required=True, type=click.Path(dir_okay=False))
+@click.option('--description_file', required=True, type=click.Path(dir_okay=False))
 def record_news(news_json: str, cover_audio_file: str, ending_audio_file: str, date: str,
-                video_file: str):
+                video_file: str, cover_file: str, description_file: str):
     news_json_path = Path(news_json)
     cover_audio_file_path = Path(cover_audio_file)
     ending_audio_file_path = Path(ending_audio_file)
     news_list = read_news_json(news_json_path)
     video_file_path = Path(video_file)
     video_file_path.parent.mkdir(parents=True, exist_ok=True)
+    cover_file_path = Path(cover_file)
+    cover_file_path.parent.mkdir(parents=True, exist_ok=True)
+    description_file_path = Path(description_file)
+    description_file_path.parent.mkdir(parents=True, exist_ok=True)
     generate_news_video(
         news_list=news_list,
         date=date,
         cover_audio_file_path=cover_audio_file_path,
         ending_audio_file_path=ending_audio_file_path,
         font_file_path=Path(_CONFIG['video_font_path']),
-        video_file_path=video_file_path)
+        video_file_path=video_file_path,
+        cover_file_path=cover_file_path)
+    generate_news_video_description(
+        news_list=news_list, date=date, description_file_path=description_file_path)
 
 
 if __name__ == '__main__':

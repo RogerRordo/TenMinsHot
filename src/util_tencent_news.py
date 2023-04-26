@@ -9,19 +9,23 @@ from typing import List, Set
 from bs4 import BeautifulSoup
 
 from class_news import News
+from util import count_chinese_chars
 from util_request import request_get
 
 _PAGE_SIZE = 20
 _HOT_RANKING_LIST_URL = 'https://r.inews.qq.com/gw/event/hot_ranking_list'
 _MAX_HOURS_DIFF_ALLOWED = 24
+_MAX_CONTENT_CHINESE_CHARS = 3200
 
 
-def _get_news_list_without_content(news_num: int) -> List[News]:
+def _get_news_list_without_content() -> List[News]:
     news_list_without_content: List[News] = []
     news_id_set: Set[str] = set()
     offset = 0
     ids_hash = ''
-    while len(news_list_without_content) < news_num:
+    has_news_added = True
+    while has_news_added:
+        has_news_added = False
         request_time = datetime.now()
         raw_hot_ranking_list_response = request_get(
             url=_HOT_RANKING_LIST_URL,
@@ -43,7 +47,6 @@ def _get_news_list_without_content(news_num: int) -> List[News]:
         raw_hot_ranking_list = list(
             filter(lambda news: news.get('articletype') == '0', raw_hot_ranking_list))
 
-        has_news_added = False
         for raw_news in raw_hot_ranking_list:
             news_id = raw_news.get('id')
             news_title = raw_news.get('title')
@@ -85,13 +88,9 @@ def _get_news_list_without_content(news_num: int) -> List[News]:
                     image_path=news_image_path))
             has_news_added = True
 
-        if not has_news_added:
-            # No more news
-            break
-
-    # Sort in comments count desc and truncate
+    # Sort in comments count desc
     news_list_without_content = sorted(
-        news_list_without_content, key=lambda news: news.comment_count, reverse=True)[:news_num]
+        news_list_without_content, key=lambda news: news.comment_count, reverse=True)
     logging.info('Got {} news from hot ranking list'.format(len(news_list_without_content)))
     return news_list_without_content
 
@@ -102,16 +101,28 @@ def _parse_news_content_from_html(raw_html: str) -> str:
     return content
 
 
-def _fetch_news_content(news_list_without_content: List[News]) -> List[News]:
+def _fetch_news_content(news_list_without_content: List[News], news_num: int) -> List[News]:
     news_list: List[News] = []
-    for index, news in enumerate(news_list_without_content):
+    for news in news_list_without_content:
         raw_news_article_response = request_get(url=news.url)
         raw_news_article_html = raw_news_article_response.text
         news_with_content = dataclasses.replace(news)
-        news_with_content.content = _parse_news_content_from_html(raw_news_article_html)
+        try:
+            news_with_content.content = _parse_news_content_from_html(raw_news_article_html)
+        except Exception as e:
+            raise ValueError('Failed to parse news content from url {}'.format(news.url)) from e
+
+        # Check content length
+        if count_chinese_chars(news_with_content.content) > _MAX_CONTENT_CHINESE_CHARS:
+            logging.warning(
+                'The origin content is too long with {} chinese chars, while we have a limit of {}'.  # pylint: disable=line-too-long
+                format(count_chinese_chars(news_with_content.content), _MAX_CONTENT_CHINESE_CHARS))
+            continue
+
         news_list.append(news_with_content)
-        logging.info('Got the content of the news: {} [{}/{}]'.format(
-            news.title, index + 1, len(news_list_without_content)))
+        logging.info('Got the content of the news: {} [{}]'.format(news.title, len(news_list)))
+        if len(news_list) >= news_num:
+            break
     return news_list
 
 
@@ -122,6 +133,8 @@ def _fetch_news_image(news_list_without_image: List[News], image_dir_path: Path)
             logging.warning(
                 'There is no cover image for the news {}, skip download its image.'.format(
                     news.title))
+            news_list.append(news)
+            continue
         raw_news_image_response = request_get(url=news.image_path)
         image_extension = raw_news_image_response.headers.get('content-type',
                                                               '').split('/')[-1] or 'webp'
@@ -136,7 +149,7 @@ def _fetch_news_image(news_list_without_image: List[News], image_dir_path: Path)
 
 
 def get_tencent_hot_ranking_list(news_num: int, image_dir_path: Path) -> List[News]:
-    news_list_without_content = _get_news_list_without_content(news_num=news_num)
-    news_list_without_image = _fetch_news_content(news_list_without_content)
+    news_list_without_content = _get_news_list_without_content()
+    news_list_without_image = _fetch_news_content(news_list_without_content, news_num)
     news_list = _fetch_news_image(news_list_without_image, image_dir_path)
     return news_list
