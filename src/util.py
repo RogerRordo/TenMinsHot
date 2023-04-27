@@ -29,6 +29,6 @@ def sync(coroutine: Coroutine) -> Any:
     return loop.run_until_complete(coroutine)
 
 
-def count_chinese_chars(s: str):
-    visible_chars = re.sub(r'\s+', '', s, flags=re.UNICODE)
+def count_chinese_chars(txt: str):
+    visible_chars = re.sub(r'\s+', '', txt, flags=re.UNICODE)
     return len(visible_chars)

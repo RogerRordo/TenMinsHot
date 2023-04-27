@@ -36,7 +36,7 @@ class UtilBilibili():
             [page], metadata, cls.credential, cover=str(cover_file_path))
 
         @uploader.on('__ALL__')
-        async def ev(data):  # pylint: disable=unused-variable
+        async def ev(data):  # pylint: disable=unused-variable, invalid-name
             logging.info(data)
 
         await uploader.start()
@@ -75,5 +75,6 @@ class UtilBilibili():
         }
         try:
             sync(cls._upload(video_file_path, cover_file_path, title, description, metadata))
-        except Exception as e:  # pylint: disable=broad-except
-            logging.exception('Failed to upload {} to bilibili: {}'.format(str(video_file_path), e))
+        except Exception as exception:  # pylint: disable=broad-except
+            logging.exception('Failed to upload {} to bilibili: {}'.format(
+                str(video_file_path), exception))

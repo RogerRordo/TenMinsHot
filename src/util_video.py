@@ -147,9 +147,9 @@ def _generate_news_slide(news: News, news_index: int, news_length: int, font_fil
     if news.image_path:
         try:
             news_image = Image.open(news.image_path)
-        except Exception as e:  # pylint: disable=broad-except
+        except Exception as exception:  # pylint: disable=broad-except
             logging.exception('Failed to open image for the news {}, ignore it. {}'.format(
-                news.title, e))
+                news.title, exception))
         else:
             has_image = True
 

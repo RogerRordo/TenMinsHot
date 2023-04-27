@@ -109,8 +109,9 @@ def _fetch_news_content(news_list_without_content: List[News], news_num: int) ->
         news_with_content = dataclasses.replace(news)
         try:
             news_with_content.content = _parse_news_content_from_html(raw_news_article_html)
-        except Exception as e:
-            raise ValueError('Failed to parse news content from url {}'.format(news.url)) from e
+        except Exception as exception:
+            raise ValueError('Failed to parse news content from url {}'.format(
+                news.url)) from exception
 
         # Check content length
         if count_chinese_chars(news_with_content.content) > _MAX_CONTENT_CHINESE_CHARS:
