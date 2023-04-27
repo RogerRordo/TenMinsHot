@@ -15,6 +15,7 @@ from util_request import request_get
 _PAGE_SIZE = 20
 _HOT_RANKING_LIST_URL = 'https://r.inews.qq.com/gw/event/hot_ranking_list'
 _MAX_HOURS_DIFF_ALLOWED = 24
+_MAX_TITLE_CHINESE_CHARS = 35
 _MAX_CONTENT_CHINESE_CHARS = 3200
 
 
@@ -64,9 +65,17 @@ def _get_news_list_without_content() -> List[News]:
                     not news_publish_time_str,
             ]):
                 continue
+
+            # Check if outdated
             news_publish_time = datetime.strptime(news_publish_time_str, '%Y-%m-%d %H:%M:%S')
             if request_time - news_publish_time > timedelta(hours=_MAX_HOURS_DIFF_ALLOWED):
-                # Outdated
+                continue
+
+            # Check title length
+            if count_chinese_chars(news_title) > _MAX_TITLE_CHINESE_CHARS:
+                logging.warning(
+                    'The title is too long with {} chinese chars, while we have a limit of {}'.
+                    format(count_chinese_chars(news_title), _MAX_CONTENT_CHINESE_CHARS))
                 continue
 
             # Replace host
