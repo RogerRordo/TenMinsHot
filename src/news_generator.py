@@ -79,7 +79,7 @@ def summarize_news(news_json: str):
 @click.option('--audio_dir', required=True, type=click.Path(file_okay=False))
 @click.option('--voices', 'voices_str', default='zh-CN-YunyangNeural,zh-CN-YunjianNeural', type=str)
 @click.option('--rate', default='+10%', type=str)
-@click.option('--volume', default='+0%', type=str)
+@click.option('--volume', default='+100%', type=str)
 def read_news(news_json: str, audio_dir: str, voices_str: str, rate: str, volume: str):
     news_json_path = Path(news_json)
     news_list_without_audio = read_news_json(news_json_path)
@@ -108,7 +108,7 @@ def read_news(news_json: str, audio_dir: str, voices_str: str, rate: str, volume
 @click.option('--date', default=datetime.now().strftime('%Y%m%d'), type=str)
 @click.option('--voice', default='zh-CN-YunyangNeural', type=str)
 @click.option('--rate', default='+10%', type=str)
-@click.option('--volume', default='+0%', type=str)
+@click.option('--volume', default='+100%', type=str)
 def read_cover_and_ending(cover_audio_file: str, ending_audio_file: str, date: str, voice: str,
                           rate: str, volume: str):
     cover_audio_file_path = Path(cover_audio_file)
