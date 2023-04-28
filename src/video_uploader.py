@@ -10,7 +10,7 @@ from util import setup_logging
 from util_bilibili import UtilBilibili
 
 _TITLE_FMT = '《十分热》每日新闻-{date}'
-_TAGS = ['新闻', '每日新闻', '时事', '政治', '热点', 'ChatGPT', 'AI']
+_TAGS = ['十分热', '新闻', '每日新闻', '时事', '政治', '热点', 'ChatGPT', 'AI']
 
 _CONFIG = {}
 with open('config.json', 'r') as f:

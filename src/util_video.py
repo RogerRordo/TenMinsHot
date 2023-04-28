@@ -305,7 +305,10 @@ def generate_news_video(news_list: List[News],
 
 def generate_news_video_description(news_list: List[News], date: str, description_file_path: Path):
     descriptions = [
-        '《十分热》每日新闻 - {}期'.format(date), '', '爬虫 + ChatGPT + TTS 全自动生成的新闻视频，十分钟带你看完24h时下热点。', ''
+        '《十分热》每日新闻 - {}期'.format(date),
+        '爬虫 + ChatGPT + TTS 全自动生成的新闻视频，十分钟带你看完24h时下热点。',
+        'https://github.com/RogerRordo/TenMinsHot',
+        '',
     ] + [
         '{}. 《{}》'.format(str(index).zfill(2), news.title) for index, news in enumerate(news_list)
     ]
